@@ -42,4 +42,4 @@ PingAverager.prototype.get = function() {
 
 PingAverager.prototype.getPingLog = function() {
     return [ this._pingLog, this._averageLog ];
-}
+};

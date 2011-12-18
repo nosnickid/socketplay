@@ -18,7 +18,7 @@ var Game = function(server, fps, pingElement, pingGraphContainer) {
 
     this._ui = {
         'pingElement': pingElement,
-        'pingGraphContainer': pingGraphContainer,
+        'pingGraphContainer': pingGraphContainer
     };
 
     return this;
@@ -37,14 +37,15 @@ Game.prototype.start = function() {
 Game.prototype.run = function() {
     this.updateGame();
     this.updateUi();
-}
+};
 
 Game.prototype.updateGame = function() {
     this.send("ping", microtime(true));
-}
+};
 
 Game.prototype.updateUi = function() {
-}
+    this.setDisplayedPing();
+};
 
 
 /**************************************************
@@ -61,6 +62,7 @@ Game.prototype.connect = function() {
 };
 
 Game.prototype.onResponder = function(data) {
+    window.console.log(data);
 };
 
 Game.prototype.onPong = function(data) {
@@ -68,11 +70,6 @@ Game.prototype.onPong = function(data) {
     var ping = now - data.data;
 
     this._ping.log(ping);
-
-    this.setDisplayedPing(this._ping.get());
-
-
-    //console.log("lag,lat (" + (now - data.data) + "," + (now - data.time) + ")");
 };
 
 Game.prototype.send = function(command, data) {
@@ -84,8 +81,8 @@ Game.prototype.send = function(command, data) {
  * UI
  **************************************************/
 
-Game.prototype.setDisplayedPing = function(ping) {
-    this._ui.pingElement.val(ping);
+Game.prototype.setDisplayedPing = function() {
+    this._ui.pingElement.val(this._ping.get());
     $.plot($(this._ui.pingGraphContainer), this._ping.getPingLog(), {
         yaxis: {
             ticks: 10,
