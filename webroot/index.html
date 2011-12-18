@@ -6,6 +6,13 @@
         <script src="/libs/general.js"></script>
         <script src="/libs/PingAverager.js"></script>
         <script src="/libs/Game.js"></script>
+
+        <style type="text/css">
+            .pingGraph {
+                width: 400px;
+                height: 200px;
+            }
+        </style>
     </head>
     <body>
         <label for="command">Echo: </label>
@@ -16,12 +23,18 @@
             <label for="ping">Ping: </label>
             <input type="text" id="ping" value="n/a"> seconds
         </p>
+        
+        <p>
+            <div id="pingGraph" class="pingGraph"></div>
+        </p>
+
+
 
         <script type="text/javascript">
 
           var G_SERVER = "http://ec2-176-34-197-62.eu-west-1.compute.amazonaws.com:8080/";
 
-          var game = new Game(G_SERVER, 20, $('#ping'));
+          var game = new Game(G_SERVER, 20, $('#ping'), $('#pingGraph'));
           game.start();
 
         </script>

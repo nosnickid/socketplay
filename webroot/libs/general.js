@@ -17,3 +17,11 @@ function microtime (get_as_float) {
 
     return (get_as_float) ? now : (Math.round((now - s) * 1000) / 1000) + ' ' + s;
 }
+
+
+// Array Remove - By John Resig (MIT Licensed)
+Array.prototype.remove = function(from, to) {
+    var rest = this.slice((to || from) + 1 || this.length);
+    this.length = from < 0 ? this.length + from : from;
+    return this.push.apply(this, rest);
+};

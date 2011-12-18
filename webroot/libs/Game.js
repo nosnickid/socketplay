@@ -8,7 +8,7 @@
  * General / Init
  **************************************************/
 
-var Game = function(server, fps, pingElement) {
+var Game = function(server, fps, pingElement, pingGraphContainer) {
     this.server = server;
     this.fps = fps;
     this._interval = undefined;
@@ -17,7 +17,8 @@ var Game = function(server, fps, pingElement) {
     this._ping = new PingAverager();
 
     this._ui = {
-        'pingElement': pingElement
+        'pingElement': pingElement,
+        'pingGraphContainer': pingGraphContainer,
     };
 
     return this;
@@ -85,4 +86,12 @@ Game.prototype.send = function(command, data) {
 
 Game.prototype.setDisplayedPing = function(ping) {
     this._ui.pingElement.val(ping);
-}
+    $.plot($(this._ui.pingGraphContainer), this._ping.getPingLog(), {
+        yaxis: {
+            ticks: 10,
+            min: 0,
+            max: 0.1
+        }
+    });
+
+};
