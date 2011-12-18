@@ -1,23 +1,34 @@
 var app = require('http').createServer(handler)
   , io = require('socket.io').listen(app)
   , fs = require('fs')
+  , url = require('url')
 
 app.listen(8080);
 
 var G_WEBROOT = '/home/steven/socketplay/webroot/';
+
 function handler (req, res) {
-    var filepath = fs.realpath(G_WEBROOT + req.filename);
+    var info = url.parse(req.url);
 
-    fs.readFile(filepath, function (err, data) {
-        if (err) {
-            res.writeHead(500);
-            return res.end('Error loading content');
+    if (info.pathname == '/') info.pathname = '/index.html';
+
+    fs.realpath(G_WEBROOT + info.pathname, function(err, filePath) {
+        if (!err) {
+            console.log("handling " + filePath);
+            fs.readFile(filePath, function (err, data) {
+                if (err) {
+                    res.writeHead(500);
+                    return res.end('Error loading content');
+                }
+
+                res.writeHead(200);
+                res.end(data);
+            });
+        } else {
+            res.writeHead(404);
+            return res.end('Not Found');
         }
-
-      res.writeHead(200);
-      res.end(data);
     });
-
 
 }
 
