@@ -1,32 +1,57 @@
 <html>
     <head>
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script src="/libs/jquery-ui-1.8.16.custom.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src="/libs/flot/jquery.flot.js"></script>
         <script src="/libs/general.js"></script>
         <script src="/libs/PingAverager.js"></script>
         <script src="/libs/Game.js"></script>
+        <script src="/libs/shader.js"></script>
+        <script src="/libs/Three.js"></script>
+        <script src="https://raw.github.com/mrdoob/three.js/master/examples/js/RequestAnimationFrame.js"></script>
 
         <style type="text/css">
             .pingGraph {
                 width: 400px;
                 height: 200px;
             }
+
+            #gl {
+                border: 1px solid black;
+                width: 640px;
+                height: 480px;
+            }
         </style>
+
+        <link rel="stylesheet" type="text/css" href="/css/smoothness/jquery-ui-1.8.16.custom.css" />
+
     </head>
     <body>
-        <label for="command">Echo: </label>
-        <input type="text" id="command" />
-        <button onclick="game.send('echo', $('#command').val());"> echo </button>
 
-        <p>
-            <label for="ping">Ping: </label>
-            <input type="text" id="ping" value="n/a"> seconds
-        </p>
-        
-        <p>
-            <div id="pingGraph" class="pingGraph"></div>
-        </p>
+        <div class="tabs">
+            <ul>
+                <li><a href="#tabs_echo">Echo</a></li>
+                <li><a href="#tabs_ping">Ping</a></li>
+            </ul>
+            <div id="tabs_echo">
+                <label for="command">Echo: </label>
+                <input type="text" id="command" />
+                <button onclick="game.send('echo', $('#command').val());"> echo </button>
+            </div>
+            <div id="tabs_ping">
+                <p>
+                    <label for="ping">Ping: </label>
+                    <input type="text" id="ping" value="n/a"> seconds
+                </p>
+                <p><input type="checkbox" onchange="game.displayPingGraph(this.checked);"></p>
+                <p>
+                    <div id="pingGraph" class="pingGraph"></div>
+                </p>
+            </div>
+        </div>
+
+        <div id="gl"></div>
 
 
 
@@ -38,6 +63,147 @@
           game.start();
 
         </script>
+
+        <script>
+
+            var camera, scene, renderer, geometry, material, mesh, shaderMaterial;
+
+            var container = $('#gl');
+
+            var PI2 = Math.PI * 2;
+
+            if ( false ) {
+                Detector.addGetWebGLMessage();
+            } else {
+                init();
+                animate();
+            }
+
+            function init() {
+
+                scene = new THREE.Scene();
+
+                camera = new THREE.PerspectiveCamera( 75, 320/240, 1, 10000 );
+                camera.position.z = 1000;
+                scene.add( camera );
+
+                geometry = new THREE.CubeGeometry( 200, 200, 200 );
+                material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+
+                mesh = new THREE.Mesh( geometry, material );
+                scene.add( mesh );
+
+                renderer = new THREE.CanvasRenderer();
+                renderer.setSize( container.width(), container.height() );
+
+                var programStroke = function ( context ) {
+
+                    context.lineWidth = 0.05;
+                    context.beginPath();
+                    context.arc( 0, 0, 1, 0, PI2, true );
+                    context.closePath();
+                    context.stroke();
+
+                }
+
+                var programFill = function ( context ) {
+
+                    context.beginPath();
+                    context.arc( 0, 0, 1, 0, PI2, true );
+                    context.closePath();
+                    context.fill();
+
+                }
+
+                for ( var i = 0; i < 100; i ++ ) {
+
+                    var particle = new THREE.Particle( new THREE.ParticleCanvasMaterial(
+                            { color: Math.random() * 0x808080 + 0x808080, program: programFill } )
+                    );
+                    particle.position.x = Math.random() * 800 - 400;
+                    particle.position.y = Math.random() * 800 - 400;
+                    particle.position.z = Math.random() * 800 - 400;
+                    particle.scale.x = particle.scale.y = 5;//  Math.random() * 10 + 10;
+                    scene.add( particle );
+
+                }
+
+                container.append( renderer.domElement );
+
+            }
+
+            function animate() {
+
+                // Include examples/js/RequestAnimationFrame.js for cross-browser compatibility.
+                requestAnimationFrame( animate );
+                render();
+
+            }
+
+            var t = 0;
+
+            function render() {
+
+                /*mesh.rotation.x += 0.01;
+                mesh.rotation.y += 0.02;*/
+
+                camera.position.x = 500 * Math.sin(t);
+                camera.position.y = 500 * Math.cos(t);
+
+                camera.lookAt(0,0,0);
+
+                t += 0.1;
+
+                renderer.render( scene, camera );
+
+            }
+
+        </script>
+
+        <script type="text/javascript">
+            $(function() {
+                $( ".tabs" ).tabs();
+            });
+        </script>
+
+        <script type="x-shader/x-vertex" id="vertexshader">
+
+            attribute float size;
+            attribute vec3 ca;
+
+            varying vec3 vColor;
+
+            void main() {
+
+            vColor = ca;
+
+            vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+
+            //gl_PointSize = size;
+            gl_PointSize = size * ( 300.0 / length( mvPosition.xyz ) );
+
+            gl_Position = projectionMatrix * mvPosition;
+
+            }
+
+        </script>
+
+        <script type="x-shader/x-fragment" id="fragmentshader">
+
+            uniform vec3 color;
+            uniform sampler2D texture;
+
+            varying vec3 vColor;
+
+            void main() {
+
+            gl_FragColor = vec4( color * vColor, 1.0 );
+            gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
+
+            }
+
+        </script>
+
 
     </body>
 </html>

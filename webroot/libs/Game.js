@@ -15,6 +15,7 @@ var Game = function(server, fps, pingElement, pingGraphContainer) {
     this._socket = undefined;
 
     this._ping = new PingAverager();
+    this._displayPingGraph = false;
 
     this._ui = {
         'pingElement': pingElement,
@@ -46,6 +47,10 @@ Game.prototype.updateGame = function() {
 Game.prototype.updateUi = function() {
     this.setDisplayedPing();
 };
+
+Game.prototype.displayPingGraph = function(show) {
+    this._displayPingGraph = show;
+}
 
 
 /**************************************************
@@ -83,12 +88,14 @@ Game.prototype.send = function(command, data) {
 
 Game.prototype.setDisplayedPing = function() {
     this._ui.pingElement.val(this._ping.get());
-    $.plot($(this._ui.pingGraphContainer), this._ping.getPingLog(), {
-        yaxis: {
-            ticks: 10,
-            min: 0,
-            max: 0.1
-        }
-    });
+    if (this._displayPingGraph) {
+        $.plot($(this._ui.pingGraphContainer), this._ping.getPingLog(), {
+            yaxis: {
+                ticks: 10,
+                min: 0,
+                max: 0.1
+            }
+        });
+    }
 
 };
