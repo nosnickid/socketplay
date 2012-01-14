@@ -2,6 +2,7 @@ var app = require('http').createServer(handler)
   , io = require('socket.io').listen(app)
   , fs = require('fs')
   , url = require('url')
+  , sg = require('./ServerGame.js')
 
 app.listen(8080);
 
@@ -46,9 +47,13 @@ function microtime (get_as_float) {
     return (get_as_float) ? now : (Math.round((now - s) * 1000) / 1000) + ' ' + s;
 }  
 
+var ourGame = new sg.ServerGame();
+ourGame.start();
+
 function ServerTick(socket) {
     socket.emit('responder', 'ticktock');
 }
+
 
 io.sockets.on('connection', function (socket) {
     socket.emit('news', { hello:'world' });
@@ -66,12 +71,13 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('start', function (data) {
-        socket.set('serverConnection', setInterval(ServerTick, 50, socket));
+        ourGame.addClient(socket);
+        //socket.set('serverConnection', setInterval(ServerTick, 50, socket));
     });
     socket.on('stop', function (data) {
-        if (socket.get('serverConnection') != undefined) {
-            clearInterval(socket.get('serverConnection'))
-            socket.set('serverConnection', undefined);
+        if (socket.get('serverConnection')) {
+            //clearInterval(socket.get('serverConnection'))
+            //socket.set('serverConnection', undefined);
         }
     });
 

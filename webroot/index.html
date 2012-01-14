@@ -52,6 +52,10 @@
             </div>
             <div id="generic_network">
                 <p>
+                    <button onclick="game.startGame();">start</button>
+                    <button onclick="game.stopGame();">stop</button>
+                </p>
+                <p>
                     <label for="emit">emit: </label>
                     <input type="text" id="emit" value="">
                 </p>
@@ -220,12 +224,14 @@
 
                 var offs = 500;
 
+                t = game.tee;
+
                 camera.position.x = offs * Math.sin(t);
                 camera.position.y = offs * Math.cos(t);
 
                 camera.lookAt(0,0,0);
 
-                t += 0.05;
+                // t += t 0.05;
 
                 renderer.render( scene, camera );
 

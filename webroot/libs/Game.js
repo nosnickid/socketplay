@@ -11,6 +11,8 @@
 var Game = function(server, fps, pingElement, pingGraphContainer) {
     this.server = server;
     this.fps = fps;
+    this.tee = 0;
+
     this._interval = undefined;
     this._socket = undefined;
 
@@ -41,7 +43,7 @@ Game.prototype.run = function() {
 };
 
 Game.prototype.updateGame = function() {
-    this.send("ping", microtime(true));
+    // this.send("ping", microtime(true));
 };
 
 Game.prototype.updateUi = function() {
@@ -62,6 +64,7 @@ Game.prototype.connect = function() {
     this._socket = io.connect(this.server);
     this._socket.on("responder", $.proxy(this.onResponder, this));
     this._socket.on("pong", $.proxy(this.onPong, this));
+    this._socket.on("tee", $.proxy(this.onTee, this));
 
     return true;
 };
@@ -77,10 +80,22 @@ Game.prototype.onPong = function(data) {
     this._ping.log(ping);
 };
 
+Game.prototype.onTee = function(data) {
+    this.tee = data;
+}
+
+
 Game.prototype.send = function(command, data) {
     this._socket.emit(command, data);
 };
 
+Game.prototype.startGame = function() {
+    this._socket.emit('start', {});
+}
+
+Game.prototype.stopGame = function() {
+    this._socket.emit('stop', {});
+}
 
 /**************************************************
  * UI
