@@ -46,17 +46,35 @@ function microtime (get_as_float) {
     return (get_as_float) ? now : (Math.round((now - s) * 1000) / 1000) + ' ' + s;
 }  
 
+function ServerTick(socket) {
+    socket.emit('responder', 'ticktock');
+}
+
 io.sockets.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-  socket.on('my other event', function (data) {
-    console.log(data);
-  });
-  socket.on('echo', function (data) { socket.emit('responder', data); });
-  socket.on('ping', function (data) { 
-    var time = microtime(true);
-    socket.emit('pong', 
-      { 'time': time, 'data': data } 
-    ); 
-  });
+    socket.emit('news', { hello:'world' });
+    socket.on('my other event', function (data) {
+        console.log(data);
+    });
+    socket.on('echo', function (data) {
+        socket.emit('responder', data);
+    });
+    socket.on('ping', function (data) {
+        var time = microtime(true);
+        socket.emit('pong',
+            { 'time':time, 'data':data }
+        );
+    });
+
+    socket.on('start', function (data) {
+        socket.set('serverConnection', setInterval(ServerTick, 50, socket));
+    });
+    socket.on('stop', function (data) {
+        if (socket.get('serverConnection') != undefined) {
+            clearInterval(socket.get('serverConnection'))
+            socket.set('serverConnection', undefined);
+        }
+    });
+
+
 });
 

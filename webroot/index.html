@@ -33,6 +33,7 @@
             <ul>
                 <li><a href="#tabs_echo">Echo</a></li>
                 <li><a href="#tabs_ping">Ping</a></li>
+                <li><a href="#generic_network">Network</a></li>
             </ul>
             <div id="tabs_echo">
                 <label for="command">Echo: </label>
@@ -47,6 +48,19 @@
                 <p><input type="checkbox" onchange="game.displayPingGraph(this.checked);"></p>
                 <p>
                     <div id="pingGraph" class="pingGraph"></div>
+                </p>
+            </div>
+            <div id="generic_network">
+                <p>
+                    <label for="emit">emit: </label>
+                    <input type="text" id="emit" value="">
+                </p>
+                <p>
+                    <label for="data_json">data json: </label>
+                    <textarea type="text" id="data_json"></textarea>
+                </p>
+                <p>
+                    <button onclick="game.send($('#emit').val(), $.parseJSON($('#data_json').val()));">send</button>
                 </p>
             </div>
         </div>
@@ -91,7 +105,7 @@
                 material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
 
                 mesh = new THREE.Mesh( geometry, material );
-                scene.add( mesh );
+                // scene.add( mesh );
 
                 renderer = new THREE.CanvasRenderer();
                 renderer.setSize( container.width(), container.height() );
@@ -128,7 +142,64 @@
 
                 }
 
+                var loader = new THREE.JSONLoader( true );
+                loader.load( "libs/p47.js", function( geometry ) { createScene( geometry, "p47") } );
+
                 container.append( renderer.domElement );
+            }
+
+            function createScene(geometry, name) {
+
+                var m = new THREE.MeshFaceMaterial();
+
+                cols = [0xff0000, 0x00ff00, 0xff];
+                for (var i in geometry.materials) {
+                    geometry.materials[i] = new THREE.MeshBasicMaterial( { color: cols[i], wireframe: true } );
+                }
+
+                var mesh = new THREE.Mesh( geometry, m );
+
+                mesh.rotation.x = 0;
+                mesh.rotation.y = 0;
+                mesh.rotation.z = 0;
+
+                mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
+
+                scene.add( mesh );
+
+
+                /*var m = new THREE.MeshFaceMaterial(),
+                        s = CARS[ car ].scale * 1,
+                        r = CARS[ car ].init_rotation,
+                        materials = CARS[ car ].materials,
+                        mi = CARS[ car ].init_material,
+                        bm = CARS[ car ].body_materials;
+
+                for ( var i in CARS[ car ].mmap ) {
+
+                    geometry.materials[ i ] = CARS[ car ].mmap[ i ];
+
+                }*
+
+                var mesh = new THREE.Mesh( geometry, m );
+
+                mesh.rotation.x = r[ 0 ];
+                mesh.rotation.y = r[ 1 ];
+                mesh.rotation.z = r[ 2 ];
+
+                mesh.scale.x = mesh.scale.y = mesh.scale.z = s;
+
+                scene.add( mesh );
+
+                CARS[ car ].object = mesh;
+
+                CARS[ car ].buttons = createButtons( materials.body, car );
+                attachButtonMaterials( materials.body, geometry, bm, car );
+
+                switchCar( car );
+
+                loader.statusDomElement.style.display = "none";
+                loader.statusDomElement.innerHTML = "Loading model ...";*/
 
             }
 
@@ -147,12 +218,14 @@
                 /*mesh.rotation.x += 0.01;
                 mesh.rotation.y += 0.02;*/
 
-                camera.position.x = 500 * Math.sin(t);
-                camera.position.y = 500 * Math.cos(t);
+                var offs = 500;
+
+                camera.position.x = offs * Math.sin(t);
+                camera.position.y = offs * Math.cos(t);
 
                 camera.lookAt(0,0,0);
 
-                t += 0.1;
+                t += 0.05;
 
                 renderer.render( scene, camera );
 
