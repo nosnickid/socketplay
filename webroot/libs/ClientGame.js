@@ -61,7 +61,7 @@ ClientGame.prototype.updateUi = function() {
 
 ClientGame.prototype.displayPingGraph = function(show) {
     this._displayPingGraph = show;
-}
+};
 
 
 /**************************************************
@@ -83,7 +83,7 @@ ClientGame.prototype.connect = function() {
 
 ClientGame.prototype.onFrame = function(data) {
     this._world.tick();
-}
+};
 
 ClientGame.prototype.onResponder = function(data) {
     window.console.log(data);
@@ -98,12 +98,12 @@ ClientGame.prototype.onPong = function(data) {
 
 ClientGame.prototype.onTee = function(data) {
     this.tee = data;
-}
+};
 
 ClientGame.prototype.onWorldState = function(data) {
     this._world = World.initAtStep(data.step, data.state);
     this._lastEmittedInput = data.step;
-}
+};
 
 
 ClientGame.prototype.send = function(command, data) {
@@ -112,11 +112,11 @@ ClientGame.prototype.send = function(command, data) {
 
 ClientGame.prototype.startGame = function() {
     this._socket.emit('start', {});
-}
+};
 
 ClientGame.prototype.stopGame = function() {
     this._socket.emit('stop', {});
-}
+};
 
 /**************************************************
  * UI

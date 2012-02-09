@@ -42,16 +42,17 @@ ServerGame.prototype._onConnection = function (socket) {
 
     socket.on('input', function(data) {
         this._enqueueInput(client, data);
+        this.tick();
     }.bind(this));
 
 
 };
 
 ServerGame.prototype.start = function() {
-    var moi = this;
+    /*var moi = this;
     if (this._gameInterval == -1) {
         this._gameInterval = setInterval(function() { moi.tick(); }, 50);
-    }
+    }*/
 };
 
 ServerGame.prototype.stop = function() {
@@ -62,6 +63,8 @@ ServerGame.prototype.stop = function() {
 };
 
 ServerGame.prototype.tick = function() {
+
+    if (this._incomingNetworkQueue.length < this._clients.length) return;
 
     var desiredStep = this._world.getStep() + 1;
 
@@ -133,7 +136,7 @@ ServerGame.prototype.removeClient = function(socket) {
 
 ServerGame.prototype.toString = function() {
     return "a server game";
-}
+};
 
 
 var ServerClient = function(socket, step, clientId) {
