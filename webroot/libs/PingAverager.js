@@ -2,6 +2,8 @@
  * User: steven
  * Date: 18/12/11
  * Time: 16:44
+ *
+ * (c) Steven Dickinson
  */
 
 var PingAverager = function () {

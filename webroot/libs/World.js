@@ -1,3 +1,7 @@
+/**
+ * (c) Steven Dickinson
+ */
+
 var World = function() {
     this._step = 0;
 

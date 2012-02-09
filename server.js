@@ -1,3 +1,7 @@
+/**
+ * (c) Steven Dickinson
+ */
+
 var app = require('http').createServer(handler)
   , fs = require('fs')
   , url = require('url')

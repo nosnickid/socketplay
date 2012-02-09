@@ -2,6 +2,8 @@
  * User: steven
  * Date: 14/01/12
  * Time: 03:01
+ *
+ * (c) Steven Dickinson
  */
 
 var world    = require('./webroot/libs/World.js')
