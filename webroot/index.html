@@ -6,7 +6,8 @@
         <script src="/libs/flot/jquery.flot.js"></script>
         <script src="/libs/general.js"></script>
         <script src="/libs/PingAverager.js"></script>
-        <script src="/libs/Game.js"></script>
+        <script src="/libs/ClientGame.js"></script>
+        <script src="/libs/World.js"></script>
         <script src="/libs/shader.js"></script>
         <script src="/libs/Three.js"></script>
 
@@ -30,10 +31,30 @@
 
         <div class="tabs">
             <ul>
+                <li><a href="#tabs_game_control">Game control</a></li>
+                <li><a href="#tabs_generic_network">Network</a></li>
                 <li><a href="#tabs_echo">Echo</a></li>
                 <li><a href="#tabs_ping">Ping</a></li>
-                <li><a href="#generic_network">Network</a></li>
             </ul>
+            <div id="tabs_game_control">
+                <p>
+                    <button onclick="game.startGame();">start</button>
+                    <button onclick="game.stopGame();">stop</button>
+                </p>
+            </div>
+            <div id="tabs_generic_network">
+                <p>
+                    <label for="emit">emit: </label>
+                    <input type="text" id="emit" value="input">
+                </p>
+                <p>
+                    <label for="data_json">data json: </label>
+                    <textarea type="text" id="data_json" cols="15" rows="5">{"step":1}</textarea>
+                </p>
+                <p>
+                    <button onclick="game.send($('#emit').val(), $.parseJSON($('#data_json').val()));">send</button>
+                </p>
+            </div>
             <div id="tabs_echo">
                 <label for="command">Echo: </label>
                 <input type="text" id="command" />
@@ -49,23 +70,6 @@
                     <div id="pingGraph" class="pingGraph"></div>
                 </p>
             </div>
-            <div id="generic_network">
-                <p>
-                    <button onclick="game.startGame();">start</button>
-                    <button onclick="game.stopGame();">stop</button>
-                </p>
-                <p>
-                    <label for="emit">emit: </label>
-                    <input type="text" id="emit" value="">
-                </p>
-                <p>
-                    <label for="data_json">data json: </label>
-                    <textarea type="text" id="data_json"></textarea>
-                </p>
-                <p>
-                    <button onclick="game.send($('#emit').val(), $.parseJSON($('#data_json').val()));">send</button>
-                </p>
-            </div>
         </div>
 
         <div id="gl"></div>
@@ -74,9 +78,12 @@
 
         <script type="text/javascript">
 
-          var G_SERVER = "http://ec2-176-34-197-62.eu-west-1.compute.amazonaws.com:8080/";
+          // var G_SERVER = "http://ec2-176-34-197-62.eu-west-1.compute.amazonaws.com:8080/";
+          var G_SERVER = "http://localhost:8080/";
 
-          var game = new Game(G_SERVER, 20, $('#ping'), $('#pingGraph'));
+          var particles = [];
+
+          var game = new ClientGame(G_SERVER, 20, $('#ping'), $('#pingGraph'));
           game.start();
 
         </script>
@@ -142,6 +149,7 @@
                     particle.position.z = Math.random() * 800 - 400;
                     particle.scale.x = particle.scale.y = 5;//  Math.random() * 10 + 10;
                     scene.add( particle );
+                    particles.push(particle);
 
                 }
 
@@ -155,9 +163,9 @@
 
                 var m = new THREE.MeshFaceMaterial();
 
-                cols = [0xff0000, 0x00ff00, 0xff];
+                cols = [0xff0000, 0x00ff00, 0xff00ff];
                 for (var i in geometry.materials) {
-                    geometry.materials[i] = new THREE.MeshBasicMaterial( { color: cols[i], wireframe: true } );
+                    geometry.materials[i] = new THREE.MeshBasicMaterial( { color: cols[i % 3], wireframe: true } );
                 }
 
                 var mesh = new THREE.Mesh( geometry, m );
@@ -169,41 +177,6 @@
                 mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
 
                 scene.add( mesh );
-
-
-                /*var m = new THREE.MeshFaceMaterial(),
-                        s = CARS[ car ].scale * 1,
-                        r = CARS[ car ].init_rotation,
-                        materials = CARS[ car ].materials,
-                        mi = CARS[ car ].init_material,
-                        bm = CARS[ car ].body_materials;
-
-                for ( var i in CARS[ car ].mmap ) {
-
-                    geometry.materials[ i ] = CARS[ car ].mmap[ i ];
-
-                }*
-
-                var mesh = new THREE.Mesh( geometry, m );
-
-                mesh.rotation.x = r[ 0 ];
-                mesh.rotation.y = r[ 1 ];
-                mesh.rotation.z = r[ 2 ];
-
-                mesh.scale.x = mesh.scale.y = mesh.scale.z = s;
-
-                scene.add( mesh );
-
-                CARS[ car ].object = mesh;
-
-                CARS[ car ].buttons = createButtons( materials.body, car );
-                attachButtonMaterials( materials.body, geometry, bm, car );
-
-                switchCar( car );
-
-                loader.statusDomElement.style.display = "none";
-                loader.statusDomElement.innerHTML = "Loading model ...";*/
-
             }
 
             function animate() {
@@ -229,6 +202,11 @@
                 camera.position.y = offs * Math.cos(t);
 
                 camera.lookAt(0,0,0);
+
+                for(var j = 0; j < particles.length; j++) {
+			        particles[j].position.z = particles[j].position.z + 4.5;
+			        if (particles[j].position.z > 400) particles[j].position.z = -400;
+		        }
 
                 // t += t 0.05;
 

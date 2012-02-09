@@ -8,13 +8,14 @@
  * General / Init
  **************************************************/
 
-var Game = function(server, fps, pingElement, pingGraphContainer) {
+var ClientGame = function(server, fps, pingElement, pingGraphContainer) {
     this.server = server;
     this.fps = fps;
     this.tee = 0;
 
     this._interval = undefined;
     this._socket = undefined;
+    this._world = undefined;
 
     this._ping = new PingAverager();
     this._displayPingGraph = false;
@@ -27,7 +28,7 @@ var Game = function(server, fps, pingElement, pingGraphContainer) {
     return this;
 };
 
-Game.prototype.start = function() {
+ClientGame.prototype.start = function() {
     if (!this.connect()) return false;
 
     if (this._interval == undefined) {
@@ -37,20 +38,28 @@ Game.prototype.start = function() {
     return this._interval != undefined;
 };
 
-Game.prototype.run = function() {
+ClientGame.prototype.run = function() {
+    if (this._lastEmittedInput == this._world.getStep()) {
+        this._lastEmittedInput = this._world.getStep() + 1;
+        this._socket.emit('input', {step: this._lastEmittedInput});
+    }
     this.updateGame();
     this.updateUi();
 };
 
-Game.prototype.updateGame = function() {
-    // this.send("ping", microtime(true));
+ClientGame.prototype.updateGame = function() {
+    if (this._world) {
+        this.tee = this._world.getStep() / 10.0;
+        //this._world.tick();
+    }
+
 };
 
-Game.prototype.updateUi = function() {
+ClientGame.prototype.updateUi = function() {
     this.setDisplayedPing();
 };
 
-Game.prototype.displayPingGraph = function(show) {
+ClientGame.prototype.displayPingGraph = function(show) {
     this._displayPingGraph = show;
 }
 
@@ -58,42 +67,54 @@ Game.prototype.displayPingGraph = function(show) {
 /**************************************************
  * Network Stuff
  **************************************************/
-Game.prototype.connect = function() {
+ClientGame.prototype.connect = function() {
     if (this._socket) return false;
 
     this._socket = io.connect(this.server);
     this._socket.on("responder", $.proxy(this.onResponder, this));
     this._socket.on("pong", $.proxy(this.onPong, this));
-    this._socket.on("tee", $.proxy(this.onTee, this));
+    // this._socket.on("tee", $.proxy(this.onTee, this));
+    this._socket.on("worldState", $.proxy(this.onWorldState, this));
+    this._socket.on('frame', $.proxy(this.onFrame, this));
 
     return true;
 };
 
-Game.prototype.onResponder = function(data) {
+
+ClientGame.prototype.onFrame = function(data) {
+    this._world.tick();
+}
+
+ClientGame.prototype.onResponder = function(data) {
     window.console.log(data);
 };
 
-Game.prototype.onPong = function(data) {
+ClientGame.prototype.onPong = function(data) {
     var now = microtime(true);
     var ping = now - data.data;
 
     this._ping.log(ping);
 };
 
-Game.prototype.onTee = function(data) {
+ClientGame.prototype.onTee = function(data) {
     this.tee = data;
 }
 
+ClientGame.prototype.onWorldState = function(data) {
+    this._world = World.initAtStep(data.step, data.state);
+    this._lastEmittedInput = data.step;
+}
 
-Game.prototype.send = function(command, data) {
+
+ClientGame.prototype.send = function(command, data) {
     this._socket.emit(command, data);
 };
 
-Game.prototype.startGame = function() {
+ClientGame.prototype.startGame = function() {
     this._socket.emit('start', {});
 }
 
-Game.prototype.stopGame = function() {
+ClientGame.prototype.stopGame = function() {
     this._socket.emit('stop', {});
 }
 
@@ -101,7 +122,7 @@ Game.prototype.stopGame = function() {
  * UI
  **************************************************/
 
-Game.prototype.setDisplayedPing = function() {
+ClientGame.prototype.setDisplayedPing = function() {
     this._ui.pingElement.val(this._ping.get());
     if (this._displayPingGraph) {
         $.plot($(this._ui.pingGraphContainer), this._ping.getPingLog(), {
